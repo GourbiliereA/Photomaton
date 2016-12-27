@@ -15,7 +15,7 @@
     <ImageView
         android:layout_width="70dp"
         android:layout_height="70dp"
-        app:srcCompat="@drawable/camera_icon"
+        android:src="@drawable/camera_icon"
         android:id="@+id/imagePhoto"
         android:contentDescription="Prendre une photo"
 
