@@ -14,4 +14,15 @@
         android:cropToPadding="true"
         android:scaleType="fitXY">
     </ImageView>
+
+    <ImageView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:src="@drawable/return_icon"
+        android:id="@+id/imageView_return"
+        android:contentDescription="Reprendre une photo"
+
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="12dp" />
 </RelativeLayout>

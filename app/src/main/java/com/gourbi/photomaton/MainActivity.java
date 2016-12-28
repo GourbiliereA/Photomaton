@@ -146,8 +146,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             File imageFile = new File(path.toString());
 
             Uri pictureTakenUri = Uri.fromFile(imageFile);
-//            Uri taken = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-//                    values);
 
             stream = (FileOutputStream) getContentResolver().openOutputStream(
                     pictureTakenUri);
