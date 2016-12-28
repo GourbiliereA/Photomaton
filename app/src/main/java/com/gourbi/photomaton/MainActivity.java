@@ -1,9 +1,11 @@
 package com.gourbi.photomaton;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,15 +17,22 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * Created by Alex GOURBILIERE on 27/12/2016.
+ */
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+    private int ACTION_TAKE_PICTURE = 1;
+
     private Camera camera;
     private Boolean isPreview;
     private FileOutputStream stream;
+    private String currentPictureUri;
 
     private ImageView buttonTakePicture;
     private SurfaceView surfaceCamera;
@@ -44,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         surfaceCamera = (SurfaceView) findViewById(R.id.surfaceViewCamera);
 
-        buttonTakePicture = (ImageView) findViewById(R.id.imagePhoto);
+        buttonTakePicture = (ImageView) findViewById(R.id.imageView_photo);
         buttonTakePicture.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -130,11 +139,20 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             values.put(MediaStore.Images.Media.DATE_TAKEN, new Date().getTime());
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
 
-            Uri taken = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    values);
+            StringBuilder path = new StringBuilder();
+            path.append(Environment.getExternalStorageDirectory());
+            path.append("/Pictures/");
+            path.append(fileName);
+            File imageFile = new File(path.toString());
+
+            Uri pictureTakenUri = Uri.fromFile(imageFile);
+//            Uri taken = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+//                    values);
 
             stream = (FileOutputStream) getContentResolver().openOutputStream(
-                    taken);
+                    pictureTakenUri);
+
+            currentPictureUri = pictureTakenUri.getPath();
 
             camera.takePicture(null, pictureCallback, pictureCallback);
         } catch (Exception e) {
@@ -153,14 +171,22 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                         stream.flush();
                         stream.close();
                     }
+
+                    launchPhotoPreview();
                 } catch (Exception e) {
                     System.out.println("Exception in Camera's callback's method : \n" + e.getMessage());
                 }
 
-                camera.startPreview();
+//                camera.startPreview();
             }
         }
     };
+
+    private void launchPhotoPreview() {
+        Intent myIntent = new Intent(this, PhotoPreviewActivity.class);
+        myIntent.putExtra(getString(R.string.parameter_fileName), currentPictureUri);
+        startActivity(myIntent);
+    }
 
     private void InitializeCamera() {
         surfaceCamera.getHolder().addCallback(this);

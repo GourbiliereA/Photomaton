@@ -1,3 +1,7 @@
 <resources>
+    <!-- Name of the application -->
     <string name="app_name">Photomaton</string>
+
+    <!-- Name of parameters given in intents -->
+    <string name="parameter_fileName">fileName</string>
 </resources>
