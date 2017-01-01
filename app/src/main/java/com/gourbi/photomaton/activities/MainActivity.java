@@ -1,22 +1,22 @@
-package com.gourbi.photomaton;
+package com.gourbi.photomaton.activities;
 
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+
+import com.gourbi.photomaton.listeners.ImageViewOnTouchListener;
+import com.gourbi.photomaton.R;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,7 +27,7 @@ import java.util.Date;
 /**
  * Created by Alex GOURBILIERE on 27/12/2016.
  */
-public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback, PhotomatonActivity {
     private int ACTION_TAKE_PICTURE = 1;
 
     private Camera camera;
@@ -55,37 +55,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         surfaceCamera = (SurfaceView) findViewById(R.id.surfaceViewCamera);
 
         buttonTakePicture = (ImageView) findViewById(R.id.imageView_photo);
-        buttonTakePicture.setOnTouchListener(new View.OnTouchListener() {
-            // Boolean to know if the user is still clicking on the icon when
-            // he moves his finger from the screen
-            private boolean stillOnIcon = false;
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                Rect rect = new Rect(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());    // Variable rect to hold the bounds of the view
-
-                switch(event.getAction()){
-                    case MotionEvent.ACTION_DOWN:
-                        buttonTakePicture.setImageResource(R.drawable.camera_icon_hover);
-                        stillOnIcon = true;
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        buttonTakePicture.setImageResource(R.drawable.camera_icon);
-                        if (stillOnIcon) {
-                            SavePicture();
-                            stillOnIcon = false;
-                        }
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        if(!rect.contains(v.getLeft() + (int) event.getX(), v.getTop() + (int) event.getY())){
-                            // User moved outside bounds
-                            stillOnIcon = false;
-                        }
-                        break;
-                }
-                return true;
-            }
-        });
+        buttonTakePicture.setOnTouchListener(new ImageViewOnTouchListener(this, R.drawable.camera_icon, R.drawable.camera_icon_hover));
 
         InitializeCamera();
     }
@@ -140,40 +110,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         }
     }
 
-    private void SavePicture() {
-        try {
-            SimpleDateFormat timeStampFormat = new SimpleDateFormat(
-                    "yyyy-MM-dd-HH.mm.ss");
-            String fileName = "photo_" + timeStampFormat.format(new Date())
-                    + ".jpg";
-
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.TITLE, fileName);
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
-            values.put(MediaStore.Images.Media.DESCRIPTION, "Image taken by the app created by Alex GOURBILIERE");
-            values.put(MediaStore.Images.Media.DATE_TAKEN, new Date().getTime());
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-
-            StringBuilder path = new StringBuilder();
-            path.append(Environment.getExternalStorageDirectory());
-            path.append("/Pictures/");
-            path.append(fileName);
-            File imageFile = new File(path.toString());
-
-            Uri pictureTakenUri = Uri.fromFile(imageFile);
-
-            stream = (FileOutputStream) getContentResolver().openOutputStream(
-                    pictureTakenUri);
-
-            currentPictureUri = pictureTakenUri.getPath();
-
-            camera.takePicture(null, pictureCallback, pictureCallback);
-        } catch (Exception e) {
-            System.out.println("Exception in SavePicture method : \n" + e.getMessage());
-        }
-
-    }
-
     Camera.PictureCallback pictureCallback = new Camera.PictureCallback() {
 
         public void onPictureTaken(byte[] data, Camera camera) {
@@ -204,5 +140,39 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private void InitializeCamera() {
         surfaceCamera.getHolder().addCallback(this);
         surfaceCamera.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+    }
+
+    @Override
+    public void performActionOnClick() {
+        try {
+            SimpleDateFormat timeStampFormat = new SimpleDateFormat(
+                    "yyyy-MM-dd-HH.mm.ss");
+            String fileName = "photo_" + timeStampFormat.format(new Date())
+                    + ".jpg";
+
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.TITLE, fileName);
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+            values.put(MediaStore.Images.Media.DESCRIPTION, "Image taken by the app created by Alex GOURBILIERE");
+            values.put(MediaStore.Images.Media.DATE_TAKEN, new Date().getTime());
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+
+            StringBuilder path = new StringBuilder();
+            path.append(Environment.getExternalStorageDirectory());
+            path.append("/Pictures/");
+            path.append(fileName);
+            File imageFile = new File(path.toString());
+
+            Uri pictureTakenUri = Uri.fromFile(imageFile);
+
+            stream = (FileOutputStream) getContentResolver().openOutputStream(
+                    pictureTakenUri);
+
+            currentPictureUri = pictureTakenUri.getPath();
+
+            camera.takePicture(null, pictureCallback, pictureCallback);
+        } catch (Exception e) {
+            System.out.println("Exception in SavePicture method : \n" + e.getMessage());
+        }
     }
 }
