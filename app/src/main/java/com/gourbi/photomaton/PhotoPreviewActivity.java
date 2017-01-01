@@ -2,6 +2,7 @@ package com.gourbi.photomaton;
 
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -41,16 +42,31 @@ public class PhotoPreviewActivity extends AppCompatActivity {
 
         buttonReturn = (ImageView) findViewById(R.id.imageView_return);
         buttonReturn.setOnTouchListener(new View.OnTouchListener() {
+            // Boolean to know if the user is still clicking on the icon when
+            // he moves his finger from the screen
+            private boolean stillOnIcon = false;
+
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                Rect rect = new Rect(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());    // Variable rect to hold the bounds of the view
+
                 switch(event.getAction()){
                     case MotionEvent.ACTION_DOWN:
                         buttonReturn.setImageResource(R.drawable.return_icon_hover);
+                        stillOnIcon = true;
                         break;
                     case MotionEvent.ACTION_UP:
                         buttonReturn.setImageResource(R.drawable.return_icon);
-
-                        cancelPicture();
+                        if (stillOnIcon) {
+                            cancelPicture();
+                            stillOnIcon = false;
+                        }
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        if(!rect.contains(v.getLeft() + (int) event.getX(), v.getTop() + (int) event.getY())){
+                            // User moved outside bounds
+                            stillOnIcon = false;
+                        }
                         break;
                 }
                 return true;
